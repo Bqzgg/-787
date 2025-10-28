@@ -16,17 +16,21 @@
             background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .container {
+            width: 90%;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            margin-bottom: 20px;
         }
         
         h1, h2, h3 {
@@ -78,6 +82,11 @@
             background-color: #2980b9;
         }
         
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
         .question-container {
             margin-bottom: 20px;
         }
@@ -86,6 +95,9 @@
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
         }
         
         .options {
@@ -100,7 +112,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
         }
         
         .option:hover {
@@ -118,10 +130,11 @@
             right: 10px;
             background-color: #2ecc71;
             color: white;
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 5px;
             font-weight: bold;
             font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         .progress {
@@ -134,6 +147,7 @@
             background-color: #e0e0e0;
             border-radius: 5px;
             margin-bottom: 10px;
+            overflow: hidden;
         }
         
         .progress-fill {
@@ -171,13 +185,13 @@
         
         .alert-success {
             background-color: #d4edda;
-            border-color: #c3e6cb;
+            border: 1px solid #c3e6cb;
             color: #155724;
         }
         
         .alert-danger {
             background-color: #f8d7da;
-            border-color: #f5c6cb;
+            border: 1px solid #f5c6cb;
             color: #721c24;
         }
         
@@ -187,6 +201,22 @@
             border-radius: 5px;
             margin-bottom: 20px;
             text-align: center;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .timer {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 15px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -601,7 +631,6 @@
         let selectedOption = null;
         let timer;
         let timeLeft = 40 * 60; // 40 دقيقة بالثواني
-        let correctSound, incorrectSound;
 
         // عناصر DOM
         const startScreen = document.getElementById('start-screen');
@@ -633,44 +662,62 @@
         // تهيئة الأصوات
         function initSounds() {
             // إنشاء سياق الصوت
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioContext = new AudioContext();
-            
-            // صوت الإجابة الصحيحة
-            correctSound = () => {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    window.audioContext = new AudioContext();
+                }
+            } catch (e) {
+                console.log("Web Audio API غير مدعومة في هذا المتصفح");
+            }
+        }
+        
+        // تشغيل صوت الإجابة الصحيحة
+        function playCorrectSound() {
+            try {
+                if (!window.audioContext) return;
+                
+                const oscillator = window.audioContext.createOscillator();
+                const gainNode = window.audioContext.createGain();
                 
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(window.audioContext.destination);
                 
                 oscillator.frequency.value = 800;
                 oscillator.type = 'sine';
                 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.3, window.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, window.audioContext.currentTime + 0.5);
                 
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            };
-            
-            // صوت الإجابة الخاطئة
-            incorrectSound = () => {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                oscillator.start(window.audioContext.currentTime);
+                oscillator.stop(window.audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log("خطأ في تشغيل الصوت");
+            }
+        }
+        
+        // تشغيل صوت الإجابة الخاطئة
+        function playIncorrectSound() {
+            try {
+                if (!window.audioContext) return;
+                
+                const oscillator = window.audioContext.createOscillator();
+                const gainNode = window.audioContext.createGain();
                 
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(window.audioContext.destination);
                 
                 oscillator.frequency.value = 300;
                 oscillator.type = 'sawtooth';
                 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
+                gainNode.gain.setValueAtTime(0.3, window.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, window.audioContext.currentTime + 0.7);
                 
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.7);
-            };
+                oscillator.start(window.audioContext.currentTime);
+                oscillator.stop(window.audioContext.currentTime + 0.7);
+            } catch (e) {
+                console.log("خطأ في تشغيل الصوت");
+            }
         }
 
         // بدء المؤقت
@@ -741,10 +788,10 @@
             
             if (isCorrect) {
                 score++;
-                correctSound();
+                playCorrectSound();
                 correctAlert.style.display = 'block';
             } else {
-                incorrectSound();
+                playIncorrectSound();
                 incorrectAlert.style.display = 'block';
                 correctAnswerEl.textContent = questions[currentQuestion].options[questions[currentQuestion].correct];
             }
@@ -787,6 +834,7 @@
             currentQuestion = 0;
             score = 0;
             timeLeft = 40 * 60;
+            timerEl.textContent = "40:00";
             
             startScreen.classList.add('active');
             quizScreen.classList.remove('active');
@@ -819,8 +867,10 @@
         restartBtn.addEventListener('click', resetQuiz);
 
         // تهيئة التطبيق
-        initSounds();
-        totalQuestionsEl.textContent = questions.length;
+        window.addEventListener('DOMContentLoaded', function() {
+            initSounds();
+            totalQuestionsEl.textContent = questions.length;
+        });
     </script>
 </body>
 </html>
