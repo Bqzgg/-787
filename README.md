@@ -1,1 +1,876 @@
-# -787
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الكيمياء التفاعلي</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .question-container {
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .options {
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            display: block;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .option.selected {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .progress {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #2ecc71;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .results {
+            text-align: center;
+        }
+        
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .correct {
+            color: #27ae60;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .student-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .timer {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة البداية -->
+    <div id="start-screen" class="screen active">
+        <div class="container">
+            <h1>اختبار الكيمياء التفاعلي</h1>
+            <p>يرجى تعبئة المعلومات التالية قبل بدء الاختبار:</p>
+            
+            <div class="form-group">
+                <label for="student-name">اسم الطالب:</label>
+                <input type="text" id="student-name" placeholder="أدخل اسمك الكامل">
+            </div>
+            
+            <div class="form-group">
+                <label for="student-class">الشعبة:</label>
+                <select id="student-class">
+                    <option value="">اختر الشعبة</option>
+                    <option value="1">الشعبة 1</option>
+                    <option value="2">الشعبة 2</option>
+                    <option value="3">الشعبة 3</option>
+                    <option value="4">الشعبة 4</option>
+                    <option value="5">الشعبة 5</option>
+                    <option value="6">الشعبة 6</option>
+                    <option value="7">الشعبة 7</option>
+                </select>
+            </div>
+            
+            <button id="start-btn">بدء الاختبار</button>
+        </div>
+    </div>
+    
+    <!-- شاشة الاختبار -->
+    <div id="quiz-screen" class="screen">
+        <div class="timer" id="timer">40:00</div>
+        <div class="container">
+            <div class="student-info" id="student-info">
+                <span id="display-name"></span> - الشعبة <span id="display-class"></span>
+            </div>
+            
+            <div class="alert alert-success" id="correct-alert">
+                إجابة صحيحة! ✓
+            </div>
+            
+            <div class="alert alert-danger" id="incorrect-alert">
+                إجابة خاطئة! الإجابة الصحيحة هي: <span id="correct-answer"></span>
+            </div>
+            
+            <div class="question-container">
+                <div class="question" id="question-text"></div>
+                <div class="options" id="options-container"></div>
+            </div>
+            
+            <button id="next-btn" disabled>التالي</button>
+            
+            <div class="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div>السؤال <span id="current-question">1</span> من <span id="total-questions">35</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- شاشة النتائج -->
+    <div id="results-screen" class="screen">
+        <div class="container">
+            <h1>نتيجة الاختبار</h1>
+            
+            <div class="student-info">
+                <span id="results-name"></span> - الشعبة <span id="results-class"></span>
+            </div>
+            
+            <div class="score">
+                النتيجة: <span id="score-value">0</span> من 35
+            </div>
+            
+            <div class="results">
+                <p>الإجابات الصحيحة: <span class="correct" id="correct-count">0</span></p>
+                <p>الإجابات الخاطئة: <span class="incorrect" id="incorrect-count">0</span></p>
+                <p>النسبة المئوية: <span id="percentage">0%</span></p>
+            </div>
+            
+            <button id="restart-btn">إعادة الاختبار</button>
+        </div>
+    </div>
+
+    <script>
+        // بيانات الأسئلة
+        const questions = [
+            {
+                question: "ما المقصود بالطريقة العلمية؟",
+                options: [
+                    "أ- أسلوب منظم لدراسة الظواهر وحل المشكلات",
+                    "ب- تخمين يعتمد على الحدس",
+                    "ج- سرد المعلومات بدون تجربة"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما أول خطوة في الطريقة العلمية؟",
+                options: [
+                    "أ- وضع الفرضية",
+                    "ب- تحديد المشكلة أو طرح السؤال",
+                    "ج- تحليل البيانات"
+                ],
+                correct: 1
+            },
+            {
+                question: "أي من الخطوات التالية تُمثل جزءًا من الطريقة العلمية؟",
+                options: [
+                    "أ- جمع البيانات وتحليلها",
+                    "ب- تجاهل الملاحظات",
+                    "ج- عرض النتائج دون تجربة"
+                ],
+                correct: 0
+            },
+            {
+                question: "أي مما يلي يهدف إليه استخدام الطريقة العلمية؟",
+                options: [
+                    "أ- إثبات الآراء الشخصية",
+                    "ب- الوصول إلى نتائج دقيقة مبنية على أدلة",
+                    "ج- زيادة عدد التجارب فقط"
+                ],
+                correct: 1
+            },
+            {
+                question: "البيانات التي تُعبّر بالأرقام تُسمى:",
+                options: [
+                    "أ- بيانات كمية",
+                    "ب- بيانات وصفية",
+                    "ج- بيانات عامة"
+                ],
+                correct: 0
+            },
+            {
+                question: "عندما نصف لون الزهرة أو رائحتها، فإننا نسجل:",
+                options: [
+                    "أ- بيانات كمية",
+                    "ب- بيانات وصفية",
+                    "ج- بيانات تجريبية"
+                ],
+                correct: 1
+            },
+            {
+                question: "ما الفرق بين الفرضية والنظرية؟",
+                options: [
+                    "أ- الفرضية تفسير مبدئي، والنظرية تفسير مدعوم بأدلة",
+                    "ب- الفرضية قانون دائم",
+                    "ج- النظرية تخمين غير مثبت"
+                ],
+                correct: 0
+            },
+            {
+                question: "القانون العلمي يختلف عن النظرية بأنه:",
+                options: [
+                    "أ- يصف ما يحدث دائماً في الطبيعة",
+                    "ب- يفسر سبب حدوث الظاهرة",
+                    "ج- يعتمد على الملاحظات فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "أي مما يلي يُعد فرضية علمية صحيحة؟",
+                options: [
+                    'أ- "إذا ارتفعت درجة الحرارة، فإن سرعة التفاعل الكيميائي تزداد."',
+                    'ب- "الماء سائل في درجة الحرارة العادية."',
+                    'ج- "الجاذبية تسحب الأجسام نحو الأرض."'
+                ],
+                correct: 0
+            },
+            {
+                question: "المتغير المستقل هو:",
+                options: [
+                    "أ- العامل الذي يغيّره الباحث أثناء التجربة",
+                    "ب- العامل الذي يقاس في النهاية",
+                    "ج- العامل الذي يبقى ثابتًا"
+                ],
+                correct: 0
+            },
+            {
+                question: "المتغير التابع هو:",
+                options: [
+                    "أ- العامل الذي يُقاس لمعرفة تأثير التغيرات",
+                    "ب- العامل الذي لا يتغير",
+                    "ج- العامل الذي يتم اختياره عشوائيًا"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما المقصود بالمتغيرات الثابتة؟",
+                options: [
+                    "أ- عوامل لا تتغير طوال التجربة",
+                    "ب- عوامل تتغير باستمرار",
+                    "ج- عوامل يتم قياسها فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "الهدف من التجربة هو:",
+                options: [
+                    "أ- اختبار الفرضية والتحقق منها",
+                    "ب- جمع بيانات دون غاية",
+                    "ج- تغيير المتغيرات فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "عند تحليل النتائج، على الباحث أن:",
+                options: [
+                    "أ- يربط النتائج بالفرضية",
+                    "ب- يتجاهل القيم غير المتوقعة",
+                    "ج- يعتمد على الحظ"
+                ],
+                correct: 0
+            },
+            {
+                question: "أي من الخطوات تأتي بعد التجربة؟",
+                options: [
+                    "أ- استخلاص النتائج",
+                    "ب- تحديد الفرضية",
+                    "ج- طرح السؤال"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما الهدف من النتائج في التجربة؟",
+                options: [
+                    "أ- تفسير ما تم ملاحظته وتحديد دلالته",
+                    "ب- حفظ البيانات دون تحليل",
+                    "ج- إعادة التجربة فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "لماذا يُفضل تكرار التجربة أكثر من مرة؟",
+                options: [
+                    "أ- للتحقق من دقة النتائج",
+                    "ب- لتغيير الفرضية",
+                    "ج- لتقليل عدد الملاحظات"
+                ],
+                correct: 0
+            },
+            {
+                question: "عندما تقارن بين بيانات تجربتين مختلفتين فإنك تستخدم مهارة:",
+                options: [
+                    "أ- التحليل",
+                    "ب- التذكر",
+                    "ج- التخمين"
+                ],
+                correct: 0
+            },
+            {
+                question: "إذا لم تؤيد النتائج الفرضية، فإن الخطوة التالية هي:",
+                options: [
+                    "أ- تعديل الفرضية أو إعادة التجربة",
+                    "ب- تجاهل البيانات",
+                    "ج- إعلان النتيجة نهائية"
+                ],
+                correct: 0
+            },
+            {
+                question: "أي من التالي يمثل استخدامًا صحيحًا للطريقة العلمية؟",
+                options: [
+                    "أ- اختبار عامل واحد في كل مرة",
+                    "ب- تغيير جميع العوامل في التجربة",
+                    "ج- تسجيل الملاحظات فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "البحث العلمي هو:",
+                options: [
+                    "أ- عملية منظمة تهدف إلى اكتساب معرفة جديدة",
+                    "ب- عمل يعتمد على التخمينات",
+                    "ج- تجربة عشوائية"
+                ],
+                correct: 0
+            },
+            {
+                question: "الفرق بين البحث النظري والتطبيقي هو أن:",
+                options: [
+                    "أ- النظري يهدف إلى الفهم، والتطبيقي لحل المشكلات",
+                    "ب- التطبيقي لا يعتمد على التجربة",
+                    "ج- النظري يستخدم مواد كيميائية فقط"
+                ],
+                correct: 0
+            },
+            {
+                question: "من أمثلة البحث النظري:",
+                options: [
+                    "أ- دراسة تركيب الذرة",
+                    "ب- تطوير دواء جديد",
+                    "ج- اختراع آلة كهربائية"
+                ],
+                correct: 0
+            },
+            {
+                question: "من أمثلة البحث التطبيقي:",
+                options: [
+                    "أ- اكتشاف تركيب الماء",
+                    "ب- تطوير علاج للسرطان",
+                    "ج- دراسة الضوء"
+                ],
+                correct: 1
+            },
+            {
+                question: "من تعليمات السلامة في المختبر:",
+                options: [
+                    "أ- ارتداء المعطف والنظارات الواقية",
+                    "ب- لمس المواد باليد مباشرة",
+                    "ج- الأكل أثناء التجربة"
+                ],
+                correct: 0
+            },
+            {
+                question: "عند حدوث تسرب كيميائي في المختبر، يجب:",
+                options: [
+                    "أ- إخبار المعلم فوراً",
+                    "ب- تنظيفه بقطعة قماش",
+                    "ج- تجاهله"
+                ],
+                correct: 0
+            },
+            {
+                question: "لماذا تُعد السلامة في المختبر مهمة؟",
+                options: [
+                    "أ- لحماية الأفراد والمعدات",
+                    "ب- لتسريع التجربة",
+                    "ج- لزيادة النتائج"
+                ],
+                correct: 0
+            },
+            {
+                question: "من فوائد دراسة الكيمياء:",
+                options: [
+                    "أ- إنتاج أدوية ومواد مفيدة",
+                    "ب- تقليل الموارد الطبيعية",
+                    "ج- زيادة الحوادث"
+                ],
+                correct: 0
+            },
+            {
+                question: "كيف ساهمت الكيمياء في حياتنا اليومية؟",
+                options: [
+                    "أ- في صناعة الأدوية والمنظفات والوقود",
+                    "ب- في تقليل جودة الهواء",
+                    "ج- في الحد من الاكتشافات"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما المقصود بالاكتشافات غير المقصودة؟",
+                options: [
+                    "أ- اكتشافات حدثت بالصدفة وأفادت البشرية",
+                    "ب- نتائج خاطئة لا فائدة منها",
+                    "ج- تجارب ناقصة"
+                ],
+                correct: 0
+            },
+            {
+                question: "أي من الأمثلة تمثل اكتشافًا غير مقصود؟",
+                options: [
+                    "أ- اكتشاف البنسلين",
+                    "ب- اكتشاف الذرة",
+                    "ج- اكتشاف الجدول الدوري"
+                ],
+                correct: 0
+            },
+            {
+                question: "تسجيل الملاحظات أثناء التجربة يساعد على:",
+                options: [
+                    "أ- دقة النتائج وتحليلها",
+                    "ب- حفظ الوقت فقط",
+                    "ج- زيادة عدد الأخطاء"
+                ],
+                correct: 0
+            },
+            {
+                question: "استخدام الرسوم البيانية في عرض البيانات يهدف إلى:",
+                options: [
+                    "أ- توضيح العلاقات بين المتغيرات بصرياً",
+                    "ب- تزيين التقرير",
+                    "ج- حفظ الألوان"
+                ],
+                correct: 0
+            },
+            {
+                question: "من خصائص الباحث العلمي الجيد:",
+                options: [
+                    "أ- الدقة والموضوعية والصبر",
+                    "ب- التسرع والعشوائية",
+                    "ج- الاعتماد على الحظ"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما القيمة التي تؤكد عليها أخلاقيات البحث العلمي؟",
+                options: [
+                    "أ- الأمانة في نقل النتائج وتوثيق المصادر",
+                    "ب- إخفاء الأخطاء",
+                    "ج- تقليد أبحاث الآخرين"
+                ],
+                correct: 0
+            }
+        ];
+
+        // متغيرات التطبيق
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let timer;
+        let timeLeft = 40 * 60; // 40 دقيقة بالثواني
+
+        // عناصر DOM
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const currentQuestionEl = document.getElementById('current-question');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const progressFill = document.getElementById('progress-fill');
+        const timerEl = document.getElementById('timer');
+        const scoreValue = document.getElementById('score-value');
+        const correctCount = document.getElementById('correct-count');
+        const incorrectCount = document.getElementById('incorrect-count');
+        const percentage = document.getElementById('percentage');
+        const correctAlert = document.getElementById('correct-alert');
+        const incorrectAlert = document.getElementById('incorrect-alert');
+        const correctAnswerEl = document.getElementById('correct-answer');
+        const studentName = document.getElementById('student-name');
+        const studentClass = document.getElementById('student-class');
+        const displayName = document.getElementById('display-name');
+        const displayClass = document.getElementById('display-class');
+        const resultsName = document.getElementById('results-name');
+        const resultsClass = document.getElementById('results-class');
+
+        // تهيئة الأصوات
+        function initSounds() {
+            // إنشاء سياق الصوت
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    window.audioContext = new AudioContext();
+                }
+            } catch (e) {
+                console.log("Web Audio API غير مدعومة في هذا المتصفح");
+            }
+        }
+        
+        // تشغيل صوت الإجابة الصحيحة
+        function playCorrectSound() {
+            try {
+                if (!window.audioContext) return;
+                
+                const oscillator = window.audioContext.createOscillator();
+                const gainNode = window.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(window.audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, window.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, window.audioContext.currentTime + 0.5);
+                
+                oscillator.start(window.audioContext.currentTime);
+                oscillator.stop(window.audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log("خطأ في تشغيل الصوت");
+            }
+        }
+        
+        // تشغيل صوت الإجابة الخاطئة
+        function playIncorrectSound() {
+            try {
+                if (!window.audioContext) return;
+                
+                const oscillator = window.audioContext.createOscillator();
+                const gainNode = window.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(window.audioContext.destination);
+                
+                oscillator.frequency.value = 300;
+                oscillator.type = 'sawtooth';
+                
+                gainNode.gain.setValueAtTime(0.3, window.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, window.audioContext.currentTime + 0.7);
+                
+                oscillator.start(window.audioContext.currentTime);
+                oscillator.stop(window.audioContext.currentTime + 0.7);
+            } catch (e) {
+                console.log("خطأ في تشغيل الصوت");
+            }
+        }
+
+        // بدء المؤقت
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endQuiz();
+                }
+            }, 1000);
+        }
+
+        // عرض السؤال الحالي
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            questionText.textContent = question.question;
+            
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                
+                optionElement.addEventListener('click', selectOption);
+                
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            currentQuestionEl.textContent = currentQuestion + 1;
+            totalQuestionsEl.textContent = questions.length;
+            
+            const progressPercentage = ((currentQuestion) / questions.length) * 100;
+            progressFill.style.width = `${progressPercentage}%`;
+            
+            selectedOption = null;
+            nextBtn.disabled = true;
+            
+            correctAlert.style.display = 'none';
+            incorrectAlert.style.display = 'none';
+        }
+
+        // اختيار إجابة
+        function selectOption(e) {
+            if (selectedOption !== null) return;
+            
+            const optionIndex = parseInt(e.target.dataset.index);
+            selectedOption = optionIndex;
+            
+            // إزالة التحديد من جميع الخيارات
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // تحديد الخيار المختار
+            e.target.classList.add('selected');
+            
+            // التحقق من الإجابة
+            const isCorrect = optionIndex === questions[currentQuestion].correct;
+            
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+                correctAlert.style.display = 'block';
+            } else {
+                playIncorrectSound();
+                incorrectAlert.style.display = 'block';
+                correctAnswerEl.textContent = questions[currentQuestion].options[questions[currentQuestion].correct];
+            }
+            
+            nextBtn.disabled = false;
+        }
+
+        // الانتقال إلى السؤال التالي
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        // إنهاء الاختبار وعرض النتائج
+        function endQuiz() {
+            clearInterval(timer);
+            
+            const incorrectAnswers = questions.length - score;
+            const percentageValue = ((score / questions.length) * 100).toFixed(2);
+            
+            scoreValue.textContent = score;
+            correctCount.textContent = score;
+            incorrectCount.textContent = incorrectAnswers;
+            percentage.textContent = `${percentageValue}%`;
+            
+            resultsName.textContent = studentName.value;
+            resultsClass.textContent = studentClass.options[studentClass.selectedIndex].text;
+            
+            quizScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+        }
+
+        // إعادة تعيين الاختبار
+        function resetQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 40 * 60;
+            timerEl.textContent = "40:00";
+            
+            startScreen.classList.add('active');
+            quizScreen.classList.remove('active');
+            resultsScreen.classList.remove('active');
+            
+            studentName.value = '';
+            studentClass.selectedIndex = 0;
+        }
+
+        // بدء الاختبار
+        function startQuiz() {
+            if (!studentName.value || !studentClass.value) {
+                alert('يرجى إدخال اسم الطالب واختيار الشعبة');
+                return;
+            }
+            
+            displayName.textContent = studentName.value;
+            displayClass.textContent = studentClass.options[studentClass.selectedIndex].text;
+            
+            startScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            
+            displayQuestion();
+            startTimer();
+        }
+
+        // إضافة مستمعي الأحداث
+        startBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', resetQuiz);
+
+        // تهيئة التطبيق
+        window.addEventListener('DOMContentLoaded', function() {
+            initSounds();
+            totalQuestionsEl.textContent = questions.length;
+        });
+    </script>
+</body>
+</html>
